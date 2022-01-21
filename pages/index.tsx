@@ -9,7 +9,7 @@ import Head from "next/head";
 import { useMemo, useState } from "react";
 import styles from "../styles/Home.module.css";
 
-function Item(props) {
+function Item(props: any) {
   const { sx, light, mask, ...other } = props;
   return (
     <Box
@@ -68,6 +68,7 @@ function Cidr({
     <TextField
       type="number"
       inputProps={{ min: 0, max: 32, style: { textAlign: "center" } }}
+      InputProps={{ disableUnderline: true }}
       variant="standard"
       value={value}
       onChange={onChange}
@@ -106,10 +107,10 @@ const Home: NextPage = () => {
     [lowBlockNum, cidr]
   );
 
-  const ipSegmentHandler = (i) => (e) => {
+  const ipSegmentHandler = (i: number) => (e: Event) => {
     setIp((ip) => {
       const n = [...ip];
-      n[i] = parseInt(e.target.value);
+      n[i] = parseInt(_.get(e.target, "value", "0"));
       return n;
     });
   };
