@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import _, { parseInt } from "lodash";
 import type { NextPage } from "next";
@@ -15,7 +16,13 @@ function Item(props) {
       sx={{
         p: 1,
         m: 0,
-        bgcolor: mask ? "#4dd0e1" : light ? "grey.400" : "grey.100",
+        bgcolor: mask
+          ? light
+            ? "#70d9e7"
+            : "#35919d"
+          : light
+          ? "grey.100"
+          : "grey.400",
         color: "grey.800",
         border: "1px solid",
         borderColor: "grey.300",
@@ -40,7 +47,9 @@ function IpSegment({
   return (
     <TextField
       type="number"
-      inputProps={{ min: 0, max: 255 }}
+      inputProps={{ min: 0, max: 255, style: { textAlign: "center" } }}
+      InputProps={{ disableUnderline: true }}
+      sx={{ flexGrow: 1 }}
       variant="standard"
       value={value}
       onChange={onChange}
@@ -58,7 +67,7 @@ function Cidr({
   return (
     <TextField
       type="number"
-      inputProps={{ min: 0, max: 32 }}
+      inputProps={{ min: 0, max: 32, style: { textAlign: "center" } }}
       variant="standard"
       value={value}
       onChange={onChange}
@@ -78,9 +87,9 @@ const numToIp = (num: number) => {
 };
 
 const Home: NextPage = () => {
-  const [enableCidr, setEnableCidr] = useState(true);
+  const [enableCidr, setEnableCidr] = useState(false);
   const [cidr, setCidr] = useState(0);
-  const [ip, setIp] = useState([1, 0, 0, 1]);
+  const [ip, setIp] = useState([0, 0, 0, 0]);
   const ipNum = useMemo(
     () => _(ip).reduce((acc, i) => (acc << 8) + i, 0) >>> 0,
     [ip]
@@ -124,38 +133,65 @@ const Home: NextPage = () => {
             label="Classless Inter-Domain Routing (CIDR)"
           />
         </Box>
-        <Box sx={{ display: "flex", flexWrap: "nowrap" }}>
-          <IpSegment value={ip[0]} onChange={ipSegmentHandler(0)} />.
-          <IpSegment value={ip[1]} onChange={ipSegmentHandler(1)} />.
-          <IpSegment value={ip[2]} onChange={ipSegmentHandler(2)} />.
-          <IpSegment value={ip[3]} onChange={ipSegmentHandler(3)} />
-          {enableCidr && (
-            <>
-              /
-              <Cidr
-                value={cidr}
-                onChange={(e) => setCidr(parseInt(e.target.value))}
-              />
-            </>
-          )}
-        </Box>
-        <Box sx={{ display: "flex", flexWrap: "nowrap" }}>
-          {_.map(ipNum.toString(2).padStart(32, "0"), (d, i) => (
-            <Item
-              key={i}
-              light={Math.floor(i / 8) % 2 === 0}
-              mask={enableCidr && i < cidr}
+        <Grid container>
+          <Grid item xs={8}>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "nowrap",
+                alignItems: "baseline",
+              }}
             >
-              {d}
-            </Item>
-          ))}
-        </Box>
+              <IpSegment value={ip[0]} onChange={ipSegmentHandler(0)} />.
+              <IpSegment value={ip[1]} onChange={ipSegmentHandler(1)} />.
+              <IpSegment value={ip[2]} onChange={ipSegmentHandler(2)} />.
+              <IpSegment value={ip[3]} onChange={ipSegmentHandler(3)} />
+            </Box>
+          </Grid>
+          <Grid item xs={4}>
+            {enableCidr && (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "nowrap",
+                  alignItems: "baseline",
+                }}
+              >
+                /
+                <Cidr
+                  value={cidr}
+                  onChange={(e) => setCidr(parseInt(e.target.value))}
+                />
+              </Box>
+            )}
+          </Grid>
+          <Grid item xs={8}>
+            <Box sx={{ display: "flex", flexWrap: "nowrap" }}>
+              {_.map(ipNum.toString(2).padStart(32, "0"), (d, i) => (
+                <Item
+                  key={i}
+                  light={Math.floor(i / 8) % 2 === 0}
+                  mask={enableCidr && i < cidr}
+                  sx={{ flexGrow: 1, flexBasis: "2em", textAlign: "center" }}
+                >
+                  {d}
+                </Item>
+              ))}
+            </Box>
+          </Grid>
+        </Grid>
+
         <Box>32-bit integer: {ipNum}</Box>
         {enableCidr && (
           <Box>
-            <div>Number of IPs in CIDR block: {Math.pow(2, 32 - cidr)}</div>
+            <div>
+              Number of IPs in CIDR block: {Math.pow(2, 32 - cidr)} (
+              {Math.pow(2, 32 - cidr).toExponential(2)})
+            </div>
             <div>Lowest IP: {numToIp(lowBlockNum).join(".")}</div>
-            <div>Highest IP: {numToIp(highBlockNum).join(".")}</div>
+            <div>
+              Highest IP (Broadcast IP): {numToIp(highBlockNum).join(".")}
+            </div>
           </Box>
         )}
       </main>
