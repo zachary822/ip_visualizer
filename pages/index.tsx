@@ -3,7 +3,7 @@ import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
-import _, { parseInt } from "lodash";
+import _ from "lodash";
 import type { NextPage } from "next";
 import Head from "next/head";
 import { useMemo, useState } from "react";
