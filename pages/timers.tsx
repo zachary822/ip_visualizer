@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 const timerScript = `
   setInterval(() => {
@@ -6,50 +6,39 @@ const timerScript = `
   }, 1000);
 `;
 
-const TimerContext = React.createContext({ current: null });
+const TimerContext = React.createContext<Worker | null>(null);
 
 const TimerProvider = ({ children }) => {
-  const handlerRef = useRef([]);
+  const [worker, setWorker] = useState<Worker | null>(null);
 
   useEffect(() => {
     const blob = new Blob([timerScript], { type: "application/javascript" });
 
     const w = new Worker(URL.createObjectURL(blob), { name: "timer" });
-    w.onmessage = (e) => {
-      for (let f of handlerRef.current) {
-        f(e);
-      }
-    };
+    setWorker(w);
 
     return () => {
       w.terminate();
+      setWorker(null);
     };
   }, []);
 
   return (
-    <TimerContext.Provider value={handlerRef}>{children}</TimerContext.Provider>
+    <TimerContext.Provider value={worker}>{children}</TimerContext.Provider>
   );
 };
 
 const useTimer = () => {
-  const handlerRef = useContext(TimerContext);
+  const worker = useContext(TimerContext);
   const [time, setTime] = useState();
 
   useEffect(() => {
-    const func = (e) => {
-      setTime(e.data);
-    };
-
-    if (handlerRef.current) {
-      handlerRef.current.push(func);
+    if (worker) {
+      worker.onmessage = (e) => {
+        setTime(e.data);
+      };
     }
-
-    return () => {
-      if (handlerRef.current) {
-        handlerRef.current.splice(handlerRef.current.indexOf(func), 1);
-      }
-    };
-  }, []);
+  }, [worker]);
 
   return time;
 };
@@ -60,30 +49,15 @@ const Timer = () => {
   return <div>do stuff with time: {time}</div>;
 };
 
-const TitleUpdater = () => {
-  const time = useTimer();
-
-  useEffect(() => {
-    document.title = `${time} ms`;
-  }, [time]);
-
-  return null;
-};
-
 const Component2 = () => {
-  return <div>yay, doesn&apos;t rerender when time updates.</div>;
+  return <div>yay, doesn&apos;t rerender with time.</div>;
 };
 
 const Timers = () => {
-  const [toggle, setToggle] = useState(true);
-
   return (
     <TimerProvider>
-      <TitleUpdater />
       riveting content
       <Timer />
-      <button onClick={() => setToggle((toggle) => !toggle)}>toggle</button>
-      {toggle && <Timer />}
       <Component2 />
     </TimerProvider>
   );
