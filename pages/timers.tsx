@@ -6,10 +6,14 @@ const timerScript = `
   }, 1000);
 `;
 
-const TimerContext = React.createContext({ current: null });
+const TimerContext = React.createContext<{
+  current: null | Array<(e: any) => void>;
+}>({
+  current: null,
+});
 
-const TimerProvider = ({ children }) => {
-  const handlerRef = useRef([]);
+const TimerProvider = ({ children }: any) => {
+  const handlerRef = useRef<Array<(e: any) => void>>([]);
 
   useEffect(() => {
     const blob = new Blob([timerScript], { type: "application/javascript" });
@@ -36,7 +40,7 @@ const useTimer = () => {
   const [time, setTime] = useState();
 
   useEffect(() => {
-    const func = (e) => {
+    const func = (e: any) => {
       setTime(e.data);
     };
 
