@@ -9,5 +9,11 @@ export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  res.status(200).json({ ip: req.headers["x-bb-ip"] as string | undefined });
+  res
+    .status(200)
+    .json({
+      ip:
+        (req.headers["x-bb-ip"] as string | undefined) ||
+        req.socket.remoteAddress,
+    });
 }
