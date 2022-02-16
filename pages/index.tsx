@@ -91,28 +91,25 @@ const Home: NextPage = () => {
   const [enableCidr, setEnableCidr] = useState(false);
   const [cidr, setCidr] = useState(0);
   const [ip, setIp] = useState([0, 0, 0, 0]);
-  const ipNum = useMemo(
-    () => _(ip).reduce((acc, i) => (acc << 8) + i, 0) >>> 0,
-    [ip]
-  );
-  const mask = useMemo(
-    () => ((Math.pow(2, cidr) - 1) << (32 - cidr)) >>> 0,
-    [cidr]
-  );
-  const lowBlockNum = useMemo(() => {
-    return (ipNum & mask) >>> 0;
-  }, [ipNum, mask]);
-  const highBlockNum = useMemo(
-    () => (lowBlockNum | (Math.pow(2, 32 - cidr) - 1)) >>> 0,
-    [lowBlockNum, cidr]
-  );
+
+  const ipNum = useMemo(() => {
+    const arr = new Uint8Array(ip);
+    const dataView = new DataView(arr.buffer);
+
+    return dataView.getUint32(0, false);
+  }, [ip]);
+
+  const mask = useMemo(() => (cidr && ~((1 << (32 - cidr)) - 1)) >>> 0, [cidr]);
+
+  const lowBlockNum = useMemo(() => (ipNum & mask) >>> 0, [ipNum, mask]);
+  const highBlockNum = useMemo(() => (ipNum | ~mask) >>> 0, [ipNum, mask]);
 
   const ipSegmentHandler = (i: number) => (e: Event) => {
-    setIp((ip) => {
-      const n = [...ip];
-      n[i] = parseInt(_.get(e.target, "value", "0"));
-      return n;
-    });
+    setIp((ip) => [
+      ...ip.slice(0, i),
+      parseInt(_.get(e.target, "value", 0)),
+      ...ip.slice(i + 1),
+    ]);
   };
 
   return (
