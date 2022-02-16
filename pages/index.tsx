@@ -180,6 +180,7 @@ const Home: NextPage = () => {
         </Grid>
 
         <Box>32-bit integer: {ipNum}</Box>
+        <Box>Hex: {ip.map((s) => s.toString(16).padStart(2, "0"))}</Box>
         {enableCidr && (
           <Box>
             <div>
