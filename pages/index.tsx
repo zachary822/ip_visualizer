@@ -7,6 +7,20 @@ import TextField from "@mui/material/TextField";
 import _ from "lodash";
 import type { NextPage } from "next";
 import { useMemo, useState } from "react";
+import { dehydrate, QueryClient, useQuery } from "react-query";
+import { getIp } from "../queries";
+
+export async function getStaticProps() {
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery("ip", getIp);
+
+  return {
+    props: {
+      dehydratedState: dehydrate(queryClient),
+    },
+  };
+}
 
 function Item(props: any) {
   const { sx, light, mask, ...other } = props;
@@ -90,6 +104,7 @@ const Home: NextPage = () => {
   const [enableCidr, setEnableCidr] = useState(false);
   const [cidr, setCidr] = useState(0);
   const [ip, setIp] = useState([0, 0, 0, 0]);
+  const { data } = useQuery("ip", getIp);
 
   const ipNum = useMemo(() => {
     const arr = new Uint8Array(ip);
@@ -172,6 +187,7 @@ const Home: NextPage = () => {
         </Grid>
       </Grid>
 
+      <Box>IP: {_.get(data, "ip")}</Box>
       <Box>32-bit integer: {ipNum}</Box>
       <Box>Hex: {ip.map((s) => s.toString(16).padStart(2, "0"))}</Box>
       {enableCidr && (

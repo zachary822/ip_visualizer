@@ -1,8 +1,12 @@
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { useState } from "react";
+import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
 import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
     <>
       <Head>
@@ -11,7 +15,11 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta name="description" content="Interactive IP Address Demo" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Component {...pageProps} />
+      <QueryClientProvider client={queryClient}>
+        <Hydrate state={pageProps.dehydratedState}>
+          <Component {...pageProps} />
+        </Hydrate>
+      </QueryClientProvider>
     </>
   );
 }
