@@ -5,15 +5,12 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import _ from "lodash";
-import type { NextPage } from "next";
-import { useMemo, useState } from "react";
-import { dehydrate, QueryClient } from "react-query";
-import { getIp } from "../queries";
+import type {NextPage} from "next";
+import {useMemo, useState} from "react";
+import {dehydrate, QueryClient} from "react-query";
 
 export async function getStaticProps() {
   const queryClient = new QueryClient();
-
-  await queryClient.prefetchQuery("ip", getIp);
 
   return {
     props: {
