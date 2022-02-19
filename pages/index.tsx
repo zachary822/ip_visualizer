@@ -1,13 +1,23 @@
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
 import Checkbox from "@mui/material/Checkbox";
 import Container from "@mui/material/Container";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import _ from "lodash";
-import type {NextPage} from "next";
-import {useMemo, useState} from "react";
-import {dehydrate, QueryClient} from "react-query";
+import type { NextPage } from "next";
+import { useCallback, useMemo, useState } from "react";
+import { dehydrate, QueryClient } from "react-query";
+
+const PRIVATE_IPS = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"];
 
 export async function getStaticProps() {
   const queryClient = new QueryClient();
@@ -44,6 +54,43 @@ function Item(props: any) {
       }}
       {...other}
     />
+  );
+}
+
+const numToIp = (num: number) => {
+  const ip = [];
+
+  for (let i of _.range(4)) {
+    ip.unshift(num & 255);
+    num >>>= 8;
+  }
+
+  return ip;
+};
+
+const useIpNum = (ip: Array<number>) => {
+  return useMemo(() => {
+    const arr = new Uint8Array(ip);
+    const dataView = new DataView(arr.buffer);
+
+    return dataView.getUint32(0, false);
+  }, [ip]);
+};
+
+function NetworkButton({
+  net,
+  setNetwork,
+}: {
+  net: string;
+  setNetwork: (n: string) => any;
+}) {
+  return (
+    <Button
+      sx={{ justifyContent: "start" }}
+      onClick={setNetwork.bind(undefined, net)}
+    >
+      {net}
+    </Button>
   );
 }
 
@@ -86,28 +133,18 @@ function Cidr({
   );
 }
 
-const numToIp = (num: number) => {
-  const ip = [];
-
-  for (let i of _.range(4)) {
-    ip.unshift(num & 255);
-    num >>>= 8;
-  }
-
-  return ip;
-};
-
 const Home: NextPage = () => {
   const [enableCidr, setEnableCidr] = useState(false);
   const [cidr, setCidr] = useState(0);
   const [ip, setIp] = useState([0, 0, 0, 0]);
 
-  const ipNum = useMemo(() => {
-    const arr = new Uint8Array(ip);
-    const dataView = new DataView(arr.buffer);
+  const setNetwork = useCallback((net: string) => {
+    const a = net.split(/[./]/);
+    setIp(a.slice(0, 4).map((i) => parseInt(i, 10)));
+    setCidr(parseInt(a[4], 10));
+  }, []);
 
-    return dataView.getUint32(0, false);
-  }, [ip]);
+  const ipNum = useIpNum(ip);
 
   const mask = useMemo(() => (cidr && ~((1 << (32 - cidr)) - 1)) >>> 0, [cidr]);
 
@@ -181,22 +218,80 @@ const Home: NextPage = () => {
             ))}
           </Box>
         </Grid>
+        <Grid item xs={4} sx={{ m: 1 }}>
+          <TableContainer component={Paper}>
+            <Table size="small">
+              <TableBody>
+                <TableRow>
+                  <TableCell component="th" scope="row">
+                    32-bit integer
+                  </TableCell>
+                  <TableCell align="right">{ipNum}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell component="th" scope="row">
+                    Hex
+                  </TableCell>
+                  <TableCell align="right">
+                    {ip.map((s) => s.toString(16).padStart(2, "0"))}
+                  </TableCell>
+                </TableRow>
+                {enableCidr && (
+                  <>
+                    <TableRow>
+                      <TableCell component="th" scope="row">
+                        Number of IPs in CIDR block
+                      </TableCell>
+                      <TableCell align="right">
+                        {Math.pow(2, 32 - cidr)} (
+                        {Math.pow(2, 32 - cidr).toExponential(2)})
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell component="th" scope="row">
+                        Lowest IP
+                      </TableCell>
+                      <TableCell align="right">
+                        {numToIp(lowBlockNum).join(".")}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell component="th" scope="row">
+                        Highest IP (Broadcast IP)
+                      </TableCell>
+                      <TableCell align="right">
+                        {numToIp(highBlockNum).join(".")}
+                      </TableCell>
+                    </TableRow>
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grid>
+        {enableCidr && (
+          <>
+            <Grid xs={12}>
+              <Box>Loopback Addresses</Box>
+              <Box>
+                <NetworkButton net={"127.0.0.0/8"} setNetwork={setNetwork} />
+              </Box>
+              <Box>Private Addresses</Box>
+              <Box>
+                <ButtonGroup orientation="vertical" variant="text">
+                  {PRIVATE_IPS.map((p) => (
+                    <NetworkButton key={p} net={p} setNetwork={setNetwork} />
+                  ))}
+                </ButtonGroup>
+              </Box>
+              <Box>Multi-cast Addresses</Box>
+              <Box>
+                <NetworkButton net={"224.0.0.0/4"} setNetwork={setNetwork} />
+              </Box>
+            </Grid>
+          </>
+        )}
       </Grid>
-
-      <Box>32-bit integer: {ipNum}</Box>
-      <Box>Hex: {ip.map((s) => s.toString(16).padStart(2, "0"))}</Box>
-      {enableCidr && (
-        <Box>
-          <div>
-            Number of IPs in CIDR block: {Math.pow(2, 32 - cidr)} (
-            {Math.pow(2, 32 - cidr).toExponential(2)})
-          </div>
-          <div>Lowest IP: {numToIp(lowBlockNum).join(".")}</div>
-          <div>
-            Highest IP (Broadcast IP): {numToIp(highBlockNum).join(".")}
-          </div>
-        </Box>
-      )}
     </Container>
   );
 };
