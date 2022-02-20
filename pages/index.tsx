@@ -14,6 +14,7 @@ import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import _ from "lodash";
 import type { NextPage } from "next";
+import Head from "next/head";
 import { useCallback, useMemo, useState } from "react";
 import { dehydrate, QueryClient } from "react-query";
 
@@ -160,35 +161,25 @@ const Home: NextPage = () => {
   };
 
   return (
-    <Container maxWidth="xl">
-      <Box>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={enableCidr}
-              onChange={(e) => setEnableCidr(e.target.checked)}
-            />
-          }
-          label="Classless Inter-Domain Routing (CIDR)"
-        />
-      </Box>
-      <Grid container>
-        <Grid item xs={10}>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "nowrap",
-              alignItems: "baseline",
-            }}
-          >
-            <IpSegment value={ip[0]} onChange={ipSegmentHandler(0)} />.
-            <IpSegment value={ip[1]} onChange={ipSegmentHandler(1)} />.
-            <IpSegment value={ip[2]} onChange={ipSegmentHandler(2)} />.
-            <IpSegment value={ip[3]} onChange={ipSegmentHandler(3)} />
-          </Box>
-        </Grid>
-        <Grid item xs={2}>
-          {enableCidr && (
+    <>
+      <Head>
+        <title>IP Visualizer</title>
+        <meta name="description" content="Interactive IP Address Demo" />
+      </Head>
+      <Container maxWidth="xl">
+        <Box>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={enableCidr}
+                onChange={(e) => setEnableCidr(e.target.checked)}
+              />
+            }
+            label="Classless Inter-Domain Routing (CIDR)"
+          />
+        </Box>
+        <Grid container>
+          <Grid item xs={10}>
             <Box
               sx={{
                 display: "flex",
@@ -196,103 +187,119 @@ const Home: NextPage = () => {
                 alignItems: "baseline",
               }}
             >
-              /
-              <Cidr
-                value={cidr}
-                onChange={(e) => setCidr(parseInt(e.target.value))}
-              />
+              <IpSegment value={ip[0]} onChange={ipSegmentHandler(0)} />.
+              <IpSegment value={ip[1]} onChange={ipSegmentHandler(1)} />.
+              <IpSegment value={ip[2]} onChange={ipSegmentHandler(2)} />.
+              <IpSegment value={ip[3]} onChange={ipSegmentHandler(3)} />
             </Box>
+          </Grid>
+          <Grid item xs={2}>
+            {enableCidr && (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "nowrap",
+                  alignItems: "baseline",
+                }}
+              >
+                /
+                <Cidr
+                  value={cidr}
+                  onChange={(e) => setCidr(parseInt(e.target.value))}
+                />
+              </Box>
+            )}
+          </Grid>
+          <Grid item xs={10}>
+            <Box sx={{ display: "flex", flexWrap: "nowrap" }}>
+              {_.map(ipNum.toString(2).padStart(32, "0"), (d, i) => (
+                <Item
+                  key={i}
+                  light={Math.floor(i / 8) % 2 === 0}
+                  mask={enableCidr && i < cidr}
+                  sx={{ flexGrow: 1, flexBasis: "2em", textAlign: "center" }}
+                >
+                  {d}
+                </Item>
+              ))}
+            </Box>
+          </Grid>
+          <Grid item xs={4} sx={{ m: 1 }}>
+            <TableContainer component={Paper}>
+              <Table size="small">
+                <TableBody>
+                  <TableRow>
+                    <TableCell component="th" scope="row">
+                      32-bit integer
+                    </TableCell>
+                    <TableCell align="right">{ipNum}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell component="th" scope="row">
+                      Hex
+                    </TableCell>
+                    <TableCell align="right">
+                      {ip.map((s) => s.toString(16).padStart(2, "0"))}
+                    </TableCell>
+                  </TableRow>
+                  {enableCidr && (
+                    <>
+                      <TableRow>
+                        <TableCell component="th" scope="row">
+                          Number of IPs in CIDR block
+                        </TableCell>
+                        <TableCell align="right">
+                          {Math.pow(2, 32 - cidr)} (
+                          {Math.pow(2, 32 - cidr).toExponential(2)})
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell component="th" scope="row">
+                          Lowest IP
+                        </TableCell>
+                        <TableCell align="right">
+                          {numToIp(lowBlockNum).join(".")}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell component="th" scope="row">
+                          Highest IP (Broadcast IP)
+                        </TableCell>
+                        <TableCell align="right">
+                          {numToIp(highBlockNum).join(".")}
+                        </TableCell>
+                      </TableRow>
+                    </>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+          {enableCidr && (
+            <>
+              <Grid xs={12}>
+                <Box>Loopback Addresses</Box>
+                <Box>
+                  <NetworkButton net={"127.0.0.0/8"} setNetwork={setNetwork} />
+                </Box>
+                <Box>Private Addresses</Box>
+                <Box>
+                  <ButtonGroup orientation="vertical" variant="text">
+                    {PRIVATE_IPS.map((p) => (
+                      <NetworkButton key={p} net={p} setNetwork={setNetwork} />
+                    ))}
+                  </ButtonGroup>
+                </Box>
+                <Box>Multi-cast Addresses</Box>
+                <Box>
+                  <NetworkButton net={"224.0.0.0/4"} setNetwork={setNetwork} />
+                </Box>
+              </Grid>
+            </>
           )}
         </Grid>
-        <Grid item xs={10}>
-          <Box sx={{ display: "flex", flexWrap: "nowrap" }}>
-            {_.map(ipNum.toString(2).padStart(32, "0"), (d, i) => (
-              <Item
-                key={i}
-                light={Math.floor(i / 8) % 2 === 0}
-                mask={enableCidr && i < cidr}
-                sx={{ flexGrow: 1, flexBasis: "2em", textAlign: "center" }}
-              >
-                {d}
-              </Item>
-            ))}
-          </Box>
-        </Grid>
-        <Grid item xs={4} sx={{ m: 1 }}>
-          <TableContainer component={Paper}>
-            <Table size="small">
-              <TableBody>
-                <TableRow>
-                  <TableCell component="th" scope="row">
-                    32-bit integer
-                  </TableCell>
-                  <TableCell align="right">{ipNum}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell component="th" scope="row">
-                    Hex
-                  </TableCell>
-                  <TableCell align="right">
-                    {ip.map((s) => s.toString(16).padStart(2, "0"))}
-                  </TableCell>
-                </TableRow>
-                {enableCidr && (
-                  <>
-                    <TableRow>
-                      <TableCell component="th" scope="row">
-                        Number of IPs in CIDR block
-                      </TableCell>
-                      <TableCell align="right">
-                        {Math.pow(2, 32 - cidr)} (
-                        {Math.pow(2, 32 - cidr).toExponential(2)})
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell component="th" scope="row">
-                        Lowest IP
-                      </TableCell>
-                      <TableCell align="right">
-                        {numToIp(lowBlockNum).join(".")}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell component="th" scope="row">
-                        Highest IP (Broadcast IP)
-                      </TableCell>
-                      <TableCell align="right">
-                        {numToIp(highBlockNum).join(".")}
-                      </TableCell>
-                    </TableRow>
-                  </>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Grid>
-        {enableCidr && (
-          <>
-            <Grid xs={12}>
-              <Box>Loopback Addresses</Box>
-              <Box>
-                <NetworkButton net={"127.0.0.0/8"} setNetwork={setNetwork} />
-              </Box>
-              <Box>Private Addresses</Box>
-              <Box>
-                <ButtonGroup orientation="vertical" variant="text">
-                  {PRIVATE_IPS.map((p) => (
-                    <NetworkButton key={p} net={p} setNetwork={setNetwork} />
-                  ))}
-                </ButtonGroup>
-              </Box>
-              <Box>Multi-cast Addresses</Box>
-              <Box>
-                <NetworkButton net={"224.0.0.0/4"} setNetwork={setNetwork} />
-              </Box>
-            </Grid>
-          </>
-        )}
-      </Grid>
-    </Container>
+      </Container>
+    </>
   );
 };
 
