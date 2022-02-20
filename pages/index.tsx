@@ -17,6 +17,8 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import { useCallback, useMemo, useState } from "react";
 import { dehydrate, QueryClient } from "react-query";
+import NextLink from "next/link";
+import Link from "@mui/material/Link";
 
 const PRIVATE_IPS = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"];
 
@@ -168,6 +170,11 @@ const Home: NextPage = () => {
       </Head>
       <Container maxWidth="xl">
         <Box>
+          <NextLink href="/dns" passHref>
+            <Link>DNS Things here</Link>
+          </NextLink>
+        </Box>
+        <Box>
           <FormControlLabel
             control={
               <Checkbox
@@ -277,7 +284,7 @@ const Home: NextPage = () => {
           </Grid>
           {enableCidr && (
             <>
-              <Grid xs={12}>
+              <Grid item xs={12}>
                 <Box>Loopback Addresses</Box>
                 <Box>
                   <NetworkButton net={"127.0.0.0/8"} setNetwork={setNetwork} />
