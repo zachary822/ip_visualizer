@@ -79,12 +79,11 @@ const handleType: { [key: number]: (buff: Buffer, offset: number) => any } = {
     let mname, rname;
     [mname, i] = getName(buff, i);
     [rname, i] = getName(buff, i);
-    console.log({
+    return {
       mname,
       rname,
       serial: buff.readUint32BE(i),
-    });
-    return mname;
+    };
   },
   12: (buff, offset) => getName(buff, offset)[0], // PTR
   28: (buff, offset) => {
