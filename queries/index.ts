@@ -56,7 +56,7 @@ export const getDNSQuery = async ({
 
       return [
         resp,
-        // ...nsQuery,
+        ..._.map(nsQuery, (q) => ({...q, intermediate: true})),
         ...(await getDNSQuery({
           hostname,
           type,

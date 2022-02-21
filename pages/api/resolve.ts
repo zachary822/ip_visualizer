@@ -197,7 +197,7 @@ async function queryDNS(
     });
   }
 
-  return { queries, answers, authority, additional, server: host, rcode };
+  return { id: id.toString("hex"), queries, answers, authority, additional, server: host, rcode };
 }
 
 export default async function handler(
