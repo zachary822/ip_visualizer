@@ -4,8 +4,14 @@ import dgram from "dgram";
 import _ from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-function hostToQuestion(host: string) {
+function hostToQuestion(host: string, type: number = 1) {
   const h = host.split(".");
+
+  if (type === 12) {
+    h.reverse();
+    h.push("in-addr", "arpa");
+  }
+
   const result = [];
 
   for (let s of h) {
@@ -13,7 +19,7 @@ function hostToQuestion(host: string) {
     result.push(Buffer.from(s)); // label
   }
   result.push(Buffer.alloc(1, 0)); // root
-  result.push(Buffer.from([0, 1, 0, 1])); // IN A
+  result.push(Buffer.from([0, type, 0, 1])); // type IN
   return Buffer.concat(result);
 }
 
@@ -80,6 +86,7 @@ const handleType: { [key: number]: (buff: Buffer, offset: number) => any } = {
     });
     return mname;
   },
+  12: (buff, offset) => getName(buff, offset)[0], // PTR
   28: (buff, offset) => {
     // AAAA
     const hex = buff.subarray(offset, offset + 16).toString("hex");
@@ -89,12 +96,17 @@ const handleType: { [key: number]: (buff: Buffer, offset: number) => any } = {
   },
 };
 
-async function queryDNS(host: string, name: string, port: number = 53) {
+async function queryDNS(
+  host: string,
+  name: string,
+  qType: number = 1,
+  port: number = 53
+) {
   const id = randomBytes(2);
   const queryOpt = Buffer.from("0100", "hex");
   const queryCount = Buffer.from([0, 1]);
   const answerCounts = Buffer.alloc(6, 0); // not needed for query
-  const question = hostToQuestion(name);
+  const question = hostToQuestion(name, qType);
 
   const query = Buffer.concat([
     id,
@@ -135,7 +147,7 @@ async function queryDNS(host: string, name: string, port: number = 53) {
     const len = msg.readUint16BE(i + 8);
     const type = msg.readUint16BE(i);
     const ttl = msg.readUint32BE(i + 4);
-    const address = handleType[type](msg, i + 10);
+    const data = handleType[type](msg, i + 10);
 
     i += 10 + len;
 
@@ -143,7 +155,7 @@ async function queryDNS(host: string, name: string, port: number = 53) {
       name,
       type,
       ttl,
-      address,
+      data,
     });
   }
 
@@ -175,14 +187,14 @@ async function queryDNS(host: string, name: string, port: number = 53) {
     const ttl = msg.readUint32BE(i + 4);
     const len = msg.readUint16BE(i + 8);
 
-    const address = handleType[type](msg, i + 10);
+    const data = handleType[type](msg, i + 10);
     i += 10 + len;
 
     additional.push({
       name,
       type,
       ttl,
-      address,
+      data,
     });
   }
 
@@ -193,6 +205,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { hostname, server = "198.41.0.4" } = req.body;
-  res.status(200).json(await queryDNS(server, hostname));
+  const { hostname, server = "198.41.0.4", type = 1 } = req.body;
+  res.status(200).json(await queryDNS(server, hostname, type));
 }

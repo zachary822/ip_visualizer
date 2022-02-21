@@ -4,10 +4,15 @@ const ROOT_SERVER_A = "198.41.0.4";
 
 export const getIp = () => fetch("/api/hello").then((resp) => resp.json());
 
-export const getDNSQuery = async (
-  hostname: string,
-  server: string = ROOT_SERVER_A
-): Promise<Array<any>> => {
+export const getDNSQuery = async ({
+  hostname,
+  type = 1,
+  server = ROOT_SERVER_A,
+}: {
+  hostname: string;
+  type?: number;
+  server?: string;
+}): Promise<Array<any>> => {
   const resp = await fetch("/api/resolve", {
     method: "POST",
     headers: {
@@ -15,6 +20,7 @@ export const getDNSQuery = async (
     },
     body: JSON.stringify({
       hostname,
+      type,
       server,
     }),
   }).then((resp) => resp.json());
@@ -31,16 +37,31 @@ export const getDNSQuery = async (
       (a) => a.name === ns.data && a.type === 1
     );
     if (nsAdditional) {
-      return [resp, ...(await getDNSQuery(hostname, nsAdditional.address))];
+      return [
+        resp,
+        ...(await getDNSQuery({
+          hostname,
+          type,
+          server: nsAdditional.data,
+        })),
+      ];
     } else {
-      const nsQuery = await getDNSQuery(ns.data, ROOT_SERVER_A);
+      const nsQuery = await getDNSQuery({
+        hostname: ns.data,
+        type: 1,
+        server: ROOT_SERVER_A,
+      });
       const nsAddrAnswers = _.get(nsQuery, [nsQuery.length - 1, "answers"]);
       const nsAddrAnswer = _.find(nsAddrAnswers, (a) => a.type === 1);
 
       return [
         resp,
         // ...nsQuery,
-        ...(await getDNSQuery(hostname, nsAddrAnswer.address)),
+        ...(await getDNSQuery({
+          hostname,
+          type,
+          server: nsAddrAnswer.data,
+        })),
       ];
     }
   }

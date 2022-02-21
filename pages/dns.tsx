@@ -3,7 +3,7 @@ import { getDNSQuery } from "../queries";
 
 function DNS() {
   useEffect(() => {
-    getDNSQuery("server1.thoughtbank.app").then(console.log);
+    getDNSQuery({ hostname: "8.8.8.8", type: 12 }).then(console.log);
   }, []);
 
   return <div>yay</div>;
