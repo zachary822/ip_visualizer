@@ -246,7 +246,7 @@ const Home: NextPage = () => {
                       Hex
                     </TableCell>
                     <TableCell align="right">
-                      {ip.map((s) => s.toString(16).padStart(2, "0"))}
+                      {ip.map((s) => s.toString(16).padStart(2, "0")).join(" ")}
                     </TableCell>
                   </TableRow>
                   {enableCidr && (
