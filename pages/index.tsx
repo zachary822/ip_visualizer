@@ -169,7 +169,7 @@ const Home: NextPage = () => {
         <meta name="description" content="Interactive IP Address Demo" />
       </Head>
       <Container maxWidth="xl">
-        <Box>
+        <Box sx={{ m: 1 }}>
           <NextLink href="/dns" passHref>
             <Link>DNS Things here</Link>
           </NextLink>
@@ -184,6 +184,15 @@ const Home: NextPage = () => {
             }
             label="Classless Inter-Domain Routing (CIDR)"
           />
+          <Button
+            color="error"
+            onClick={(e) => {
+              setIp([0, 0, 0, 0]);
+              setCidr(0);
+            }}
+          >
+            Reset
+          </Button>
         </Box>
         <Grid container>
           <Grid item xs={10}>
