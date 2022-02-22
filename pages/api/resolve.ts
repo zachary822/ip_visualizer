@@ -5,11 +5,13 @@ import _ from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 function hostToQuestion(host: string, type: number = 1) {
-  const h = host.split(".");
+  const h = host.replace(/\.$/, "").split(".");
 
   if (type === 12) {
     h.reverse();
-    h.push("in-addr", "arpa");
+    h.push("in-addr", "arpa", "");
+  } else {
+    h.push("");
   }
 
   const result = [];
@@ -18,7 +20,7 @@ function hostToQuestion(host: string, type: number = 1) {
     result.push(Buffer.alloc(1, s.length)); // label size
     result.push(Buffer.from(s)); // label
   }
-  result.push(Buffer.alloc(1, 0)); // root
+
   result.push(Buffer.from([0, type, 0, 1])); // type IN
   return Buffer.concat(result);
 }
