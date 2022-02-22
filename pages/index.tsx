@@ -5,6 +5,7 @@ import Checkbox from "@mui/material/Checkbox";
 import Container from "@mui/material/Container";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Grid from "@mui/material/Grid";
+import Link from "@mui/material/Link";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -15,10 +16,9 @@ import TextField from "@mui/material/TextField";
 import _ from "lodash";
 import type { NextPage } from "next";
 import Head from "next/head";
+import NextLink from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { dehydrate, QueryClient } from "react-query";
-import NextLink from "next/link";
-import Link from "@mui/material/Link";
 
 const PRIVATE_IPS = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"];
 
@@ -61,14 +61,12 @@ function Item(props: any) {
 }
 
 const numToIp = (num: number) => {
-  const ip = [];
+  const buff = new ArrayBuffer(4);
+  const view = new DataView(buff);
 
-  for (let i of _.range(4)) {
-    ip.unshift(num & 255);
-    num >>>= 8;
-  }
+  view.setUint32(0, num, false);
 
-  return ip;
+  return new Uint8Array(buff);
 };
 
 const useIpNum = (ip: Array<number>) => {
@@ -149,7 +147,7 @@ const Home: NextPage = () => {
 
   const ipNum = useIpNum(ip);
 
-  const mask = useMemo(() => (cidr && ~((1 << (32 - cidr)) - 1)) >>> 0, [cidr]);
+  const mask = useMemo(() => (cidr && -1 << (32 - cidr)) >>> 0, [cidr]);
 
   const lowBlockNum = useMemo(() => (ipNum & mask) >>> 0, [ipNum, mask]);
   const highBlockNum = useMemo(() => (ipNum | ~mask) >>> 0, [ipNum, mask]);
