@@ -147,7 +147,10 @@ const Home: NextPage = () => {
 
   const ipNum = useIpNum(ip);
 
-  const mask = useMemo(() => (cidr && -1 << (32 - cidr)) >>> 0, [cidr]);
+  const mask = useMemo(
+    () => (cidr && !(cidr % 32) ? -1 : ~(-1 >>> cidr)),
+    [cidr]
+  );
 
   const lowBlockNum = useMemo(() => (ipNum & mask) >>> 0, [ipNum, mask]);
   const highBlockNum = useMemo(() => (ipNum | ~mask) >>> 0, [ipNum, mask]);
