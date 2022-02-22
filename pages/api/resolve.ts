@@ -120,7 +120,6 @@ async function queryDNS(
   console.assert(msg.subarray(0, 2).equals(id), "ids should match");
 
   const rcode = msg.readUint16BE(2) & 0x0f;
-  console.assert(rcode === 0, "should not error");
 
   const queries = [];
 
@@ -197,7 +196,15 @@ async function queryDNS(
     });
   }
 
-  return { id: id.toString("hex"), queries, answers, authority, additional, server: host, rcode };
+  return {
+    id: id.toString("hex"),
+    queries,
+    answers,
+    authority,
+    additional,
+    server: host,
+    rcode,
+  };
 }
 
 export default async function handler(
@@ -205,5 +212,9 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const { hostname, server = "198.41.0.4", type = 1 } = req.body;
-  res.status(200).json(await queryDNS(server, hostname, type));
+  try {
+    res.status(200).json(await queryDNS(server, hostname, type));
+  } catch (e) {
+    res.status(400).json({ message: e });
+  }
 }

@@ -107,10 +107,15 @@ function AnswerNode({ resp }: { resp: any }) {
 }
 
 function DNS() {
-  const [hostname, setHostname] = useState<string>("vaulthealth.com");
+  const [mountDns, setMountDns] = useState<boolean>(false);
+  const [hostname, setHostname] = useState<string>("");
   const [reverse, setReverse] = useState<boolean>(false);
   const [result, setResult] = useState<Array<any>>([]);
   const [showIntermediate, setShowIntermediate] = useState<boolean>(false);
+
+  useEffect(() => {
+    setMountDns(true);
+  }, []);
 
   const elements = useMemo(() => {
     if (!result.length) {
@@ -119,7 +124,7 @@ function DNS() {
     return _.reduce(
       _.filter(result, (resp) => showIntermediate || !resp.intermediate),
       (arr, resp, i, r) => {
-        const query = _.head(resp.queries) as Query;
+        const query: Query | undefined = _.head(resp.queries);
         arr.push(
           {
             id: resp.id + "-query",
@@ -127,7 +132,9 @@ function DNS() {
             sourcePosition: "right",
             targetPosition: "right",
             data: {
-              label: `${query.name} IN ${typeMap[query.type]}`,
+              label: query
+                ? `${query.name} IN ${typeMap[query.type]}`
+                : "invalid hostname",
             },
             position: { x: 250, y: i * 90 },
           },
@@ -239,9 +246,11 @@ function DNS() {
           </form>
         </Box>
         <Box sx={{ height: "70vh" }}>
-          <ReactFlowProvider>
-            <DNSFlow elements={elements} />
-          </ReactFlowProvider>
+          {mountDns && (
+            <ReactFlowProvider>
+              <DNSFlow elements={elements} />
+            </ReactFlowProvider>
+          )}
         </Box>
       </Container>
     </>
