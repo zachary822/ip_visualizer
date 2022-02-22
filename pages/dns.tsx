@@ -9,20 +9,8 @@ import Link from "@mui/material/Link";
 import _ from "lodash";
 import Head from "next/head";
 import NextLink from "next/link";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from "react";
-import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  ReactFlowProvider,
-  useZoomPanHelper,
-} from "react-flow-renderer";
+import { useCallback, useMemo, useState } from "react";
+import ReactFlow, { Background, Controls, MiniMap } from "react-flow-renderer";
 import { getDNSQuery } from "../queries";
 
 const typeMap: { [key: number]: string } = {
@@ -51,12 +39,6 @@ interface Answer {
 const onLoad = (reactFlowInstance: any) => reactFlowInstance.fitView();
 
 function DNSFlow({ elements }: { elements: Array<any> }) {
-  const { fitView } = useZoomPanHelper();
-
-  useLayoutEffect(() => {
-    fitView();
-  }, [elements, fitView]);
-
   return (
     <ReactFlow
       elements={elements}
@@ -107,15 +89,10 @@ function AnswerNode({ resp }: { resp: any }) {
 }
 
 function DNS() {
-  const [mountDns, setMountDns] = useState<boolean>(false);
   const [hostname, setHostname] = useState<string>("");
   const [reverse, setReverse] = useState<boolean>(false);
   const [result, setResult] = useState<Array<any>>([]);
   const [showIntermediate, setShowIntermediate] = useState<boolean>(false);
-
-  useEffect(() => {
-    setMountDns(true);
-  }, []);
 
   const elements = useMemo(() => {
     if (!result.length) {
@@ -246,11 +223,7 @@ function DNS() {
           </form>
         </Box>
         <Box sx={{ height: "70vh" }}>
-          {mountDns && (
-            <ReactFlowProvider>
-              <DNSFlow elements={elements} />
-            </ReactFlowProvider>
-          )}
+          <DNSFlow elements={elements} />
         </Box>
       </Container>
     </>
