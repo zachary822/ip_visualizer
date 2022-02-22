@@ -9,8 +9,20 @@ import Link from "@mui/material/Link";
 import _ from "lodash";
 import Head from "next/head";
 import NextLink from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import ReactFlow, { Background, Controls, MiniMap } from "react-flow-renderer";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  ReactFlowProvider,
+  useZoomPanHelper,
+} from "react-flow-renderer";
 import { getDNSQuery } from "../queries";
 
 const typeMap: { [key: number]: string } = {
@@ -39,6 +51,12 @@ interface Answer {
 const onLoad = (reactFlowInstance: any) => reactFlowInstance.fitView();
 
 function DNSFlow({ elements }: { elements: Array<any> }) {
+  const { fitView } = useZoomPanHelper();
+
+  useLayoutEffect(() => {
+    fitView();
+  }, [elements, fitView]);
+
   return (
     <ReactFlow
       elements={elements}
@@ -68,11 +86,11 @@ function AuthorityNode({ resp }: { resp: any }) {
   return (
     <div>
       <div>
-        {authority.name} IN NS {authority.data}
+        Authority: {authority.name} IN NS {authority.data}
       </div>
       {additional && (
         <div>
-          {additional.name} IN A {additional.data}
+          Additional: {additional.name} IN A {additional.data}
         </div>
       )}
     </div>
@@ -83,7 +101,7 @@ function AnswerNode({ resp }: { resp: any }) {
   const answer = _.head(resp.answers) as Answer;
   return (
     <div>
-      {answer.name} IN {typeMap[answer.type]} {answer.data}
+      Answer: {answer.name} IN {typeMap[answer.type]} {answer.data}
     </div>
   );
 }
@@ -225,7 +243,9 @@ function DNS() {
           </form>
         </Box>
         <Box sx={{ height: "70vh" }}>
-          <DNSFlow elements={elements} />
+          <ReactFlowProvider>
+            <DNSFlow elements={elements} />
+          </ReactFlowProvider>
         </Box>
       </Container>
     </>
