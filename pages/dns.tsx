@@ -179,10 +179,6 @@ function DNS() {
     );
   }, [result, showIntermediate]);
 
-  useEffect(() => {
-    console.log(result);
-  }, [result]);
-
   const onSubmit = useCallback(
     (e) => {
       e.preventDefault();
