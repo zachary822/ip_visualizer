@@ -108,6 +108,9 @@ function DNS() {
             type: i ? "default" : "input",
             sourcePosition: "right",
             targetPosition: "right",
+            style: {
+              background: resp.intermediate ? "#eee" : "white",
+            },
             data: {
               label: query
                 ? `${query.name} IN ${typeMap[query.type]}`
