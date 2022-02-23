@@ -62,6 +62,7 @@ function getName(buff: Buffer, offset: number): [string, number] {
     }
 
     if (!j) {
+      labels.push("");
       break;
     }
     labels.push(buff.toString("utf8", i, i + j));
