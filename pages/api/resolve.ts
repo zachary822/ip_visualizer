@@ -5,13 +5,15 @@ import _ from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 function hostToQuestion(host: string, type: number = 1) {
-  const h = host.replace(/\.$/, "").split(".");
+  if (host && type !== 12 && !host.endsWith(".")) {
+    host += ".";
+  }
 
-  if (type === 12) {
+  const h = host.trim().split(".");
+
+  if (host && type === 12) {
     h.reverse();
     h.push("in-addr", "arpa", "");
-  } else {
-    h.push("");
   }
 
   const result = [];

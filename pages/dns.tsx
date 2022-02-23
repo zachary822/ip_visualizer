@@ -24,12 +24,6 @@ interface Query {
   type: number;
 }
 
-interface Authority {
-  name: string;
-  type: number;
-  data: string;
-}
-
 interface Answer {
   name: string;
   type: number;
@@ -54,7 +48,15 @@ function DNSFlow({ elements }: { elements: Array<any> }) {
 }
 
 function AuthorityNode({ resp }: { resp: any }) {
-  const authority = _.head(resp.authority) as Authority;
+  const authority: any = _.head(resp.authority);
+
+  if (authority.type === 6) {
+    return <div>
+      <div>Authority: {authority.name} IN SOA </div>
+      <div>Primary Name Server: {authority.data.mname}</div>
+      <div>Mailbox: {authority.data.rname}</div>
+    </div>
+  }
 
   if (authority.type !== 2) {
     return null;
