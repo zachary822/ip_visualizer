@@ -55,7 +55,7 @@ function AuthorityNode({ resp }: { resp: any }) {
   if (authority.type === 6) {
     return (
       <div>
-        <div>Authority: {authority.name} IN SOA </div>
+        <div>Authority: {authority.name} IN SOA</div>
         <div>Primary Name Server: {authority.data.mname}</div>
         <div>Mailbox: {authority.data.rname}</div>
       </div>
@@ -94,13 +94,8 @@ function AnswerNode({ resp }: { resp: any }) {
   );
 }
 
-function DNS() {
-  const [hostname, setHostname] = useState<string>("");
-  const [reverse, setReverse] = useState<boolean>(false);
-  const [result, setResult] = useState<Array<any>>([]);
-  const [showIntermediate, setShowIntermediate] = useState<boolean>(false);
-
-  const [nodes, edges] = useMemo<[any[], any[]]>(() => {
+function useFlow(result: any[], showIntermediate: boolean = false) {
+  return useMemo<[any[], any[]]>(() => {
     if (!result.length) {
       return [[], []];
     }
@@ -172,6 +167,15 @@ function DNS() {
       [[], []] as any
     );
   }, [result, showIntermediate]);
+}
+
+function DNS() {
+  const [hostname, setHostname] = useState<string>("");
+  const [reverse, setReverse] = useState<boolean>(false);
+  const [result, setResult] = useState<Array<any>>([]);
+  const [showIntermediate, setShowIntermediate] = useState<boolean>(false);
+
+  const [nodes, edges] = useFlow(result, showIntermediate);
 
   const onSubmit = useCallback(
     (e) => {
@@ -180,6 +184,12 @@ function DNS() {
     },
     [hostname, reverse]
   );
+
+  const onReset = useCallback((e) => {
+    e.preventDefault();
+    setHostname("");
+    setResult([]);
+  }, []);
 
   return (
     <>
@@ -194,7 +204,7 @@ function DNS() {
           </NextLink>
         </Box>
         <Box>
-          <form action="" onSubmit={onSubmit}>
+          <form action="" onSubmit={onSubmit} onReset={onReset}>
             <Box>
               <FormControl>
                 <Input
@@ -204,7 +214,7 @@ function DNS() {
                 />
               </FormControl>
               <Button type="submit">Query</Button>
-              <Button color="error" onClick={() => setResult([])}>
+              <Button color="error" type="reset">
                 Reset
               </Button>
             </Box>
