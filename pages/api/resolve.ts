@@ -19,8 +19,7 @@ function hostToQuestion(host: string, type: number = 1) {
   const result = [];
 
   for (let s of h) {
-    result.push(Buffer.alloc(1, s.length)); // label size
-    result.push(Buffer.from(s)); // label
+    result.push(Buffer.alloc(1, s.length), Buffer.from(s)); // size, label
   }
 
   result.push(Buffer.from([0, type, 0, 1])); // type IN

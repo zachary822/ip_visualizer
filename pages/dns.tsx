@@ -32,12 +32,14 @@ interface Answer {
 
 const onLoad = (reactFlowInstance: any) => reactFlowInstance.fitView();
 
-function DNSFlow({ elements }: { elements: Array<any> }) {
+function DNSFlow({ nodes, edges }: { nodes: any[]; edges: any[] }) {
   return (
     <ReactFlow
-      elements={elements}
+      nodes={nodes}
+      edges={edges}
       onLoad={onLoad}
-      snapToGrid={true}
+      snapToGrid
+      fitView
       snapGrid={[15, 15]}
     >
       <MiniMap />
@@ -51,11 +53,13 @@ function AuthorityNode({ resp }: { resp: any }) {
   const authority: any = _.head(resp.authority);
 
   if (authority.type === 6) {
-    return <div>
-      <div>Authority: {authority.name} IN SOA </div>
-      <div>Primary Name Server: {authority.data.mname}</div>
-      <div>Mailbox: {authority.data.rname}</div>
-    </div>
+    return (
+      <div>
+        <div>Authority: {authority.name} IN SOA </div>
+        <div>Primary Name Server: {authority.data.mname}</div>
+        <div>Mailbox: {authority.data.rname}</div>
+      </div>
+    );
   }
 
   if (authority.type !== 2) {
@@ -96,15 +100,15 @@ function DNS() {
   const [result, setResult] = useState<Array<any>>([]);
   const [showIntermediate, setShowIntermediate] = useState<boolean>(false);
 
-  const elements = useMemo(() => {
+  const [nodes, edges] = useMemo<[any[], any[]]>(() => {
     if (!result.length) {
-      return [];
+      return [[], []];
     }
     return _.reduce(
       _.filter(result, (resp) => showIntermediate || !resp.intermediate),
-      (arr, resp, i, r) => {
+      ([nodes, edges], resp, i, r) => {
         const query: Query | undefined = _.head(resp.queries);
-        arr.push(
+        nodes.push(
           {
             id: resp.id + "-query",
             type: i ? "default" : "input",
@@ -119,12 +123,6 @@ function DNS() {
                 : "invalid hostname",
             },
             position: { x: 250, y: i * 90 },
-          },
-          {
-            id: `${resp.id}-edge`,
-            source: `${resp.id}-query`,
-            target: `${resp.id}-answer`,
-            arrowHeadType: "arrowclosed",
           },
           {
             id: `${resp.id}-answer`,
@@ -153,8 +151,15 @@ function DNS() {
           }
         );
 
+        edges.push({
+          id: `${resp.id}-edge`,
+          source: `${resp.id}-query`,
+          target: `${resp.id}-answer`,
+          arrowHeadType: "arrowclosed",
+        });
+
         if (i > 0) {
-          arr.push({
+          edges.push({
             id: `${resp.id}-in-edge`,
             source: `${r[i - 1].id}-answer`,
             target: `${resp.id}-query`,
@@ -162,9 +167,9 @@ function DNS() {
           });
         }
 
-        return arr;
+        return [nodes, edges];
       },
-      [] as any
+      [[], []] as any
     );
   }, [result, showIntermediate]);
 
@@ -228,7 +233,7 @@ function DNS() {
           </form>
         </Box>
         <Box sx={{ height: "70vh" }}>
-          <DNSFlow elements={elements} />
+          <DNSFlow nodes={nodes} edges={edges} />
         </Box>
       </Container>
     </>
