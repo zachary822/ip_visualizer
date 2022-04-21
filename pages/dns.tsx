@@ -9,6 +9,7 @@ import Link from "@mui/material/Link";
 import _ from "lodash";
 import Head from "next/head";
 import NextLink from "next/link";
+import type { SyntheticEvent } from "react";
 import { useCallback, useMemo, useState } from "react";
 import ReactFlow, { Background, Controls, MiniMap } from "react-flow-renderer";
 import { getDNSQuery } from "../queries";
@@ -178,14 +179,14 @@ function DNS() {
   const [nodes, edges] = useFlow(result, showIntermediate);
 
   const onSubmit = useCallback(
-    (e) => {
+    (e: SyntheticEvent) => {
       e.preventDefault();
       getDNSQuery({ hostname, type: reverse ? 12 : 1 }).then(setResult);
     },
     [hostname, reverse]
   );
 
-  const onReset = useCallback((e) => {
+  const onReset = useCallback((e: SyntheticEvent) => {
     e.preventDefault();
     setHostname("");
     setResult([]);
