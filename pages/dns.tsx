@@ -1,11 +1,13 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
+import Chip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
 import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Input from "@mui/material/Input";
 import Link from "@mui/material/Link";
+import Stack from "@mui/material/Stack";
 import _ from "lodash";
 import Head from "next/head";
 import NextLink from "next/link";
@@ -170,9 +172,10 @@ function useFlow(result: any[], showIntermediate: boolean = false) {
   }, [result, showIntermediate]);
 }
 
+const IP_REGEX = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$/;
+
 function DNS() {
   const [hostname, setHostname] = useState<string>("");
-  const [reverse, setReverse] = useState<boolean>(false);
   const [result, setResult] = useState<Array<any>>([]);
   const [showIntermediate, setShowIntermediate] = useState<boolean>(false);
 
@@ -181,9 +184,11 @@ function DNS() {
   const onSubmit = useCallback(
     (e: SyntheticEvent) => {
       e.preventDefault();
-      getDNSQuery({ hostname, type: reverse ? 12 : 1 }).then(setResult);
+      getDNSQuery({ hostname, type: IP_REGEX.test(hostname) ? 12 : 1 }).then(
+        setResult
+      );
     },
-    [hostname, reverse]
+    [hostname]
   );
 
   const onReset = useCallback((e: SyntheticEvent) => {
@@ -207,28 +212,22 @@ function DNS() {
         <Box>
           <form action="" onSubmit={onSubmit} onReset={onReset}>
             <Box>
-              <FormControl>
-                <Input
-                  placeholder="hostname"
-                  value={hostname}
-                  onChange={(e) => setHostname(e.target.value)}
-                />
-              </FormControl>
-              <Button type="submit">Query</Button>
-              <Button color="error" type="reset">
-                Reset
-              </Button>
-            </Box>
-            <Box>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={reverse}
-                    onChange={(e) => setReverse(e.target.checked)}
+              <Stack direction="row" spacing={1}>
+                <FormControl>
+                  <Input
+                    placeholder="hostname"
+                    value={hostname}
+                    onChange={(e) => setHostname(e.target.value)}
                   />
-                }
-                label="Reverse"
-              />
+                </FormControl>
+                <Button type="submit">Query</Button>
+                <Button color="error" type="reset">
+                  Reset
+                </Button>
+                {IP_REGEX.test(hostname) && (
+                  <Chip label="Reversed" color="success" variant="outlined" />
+                )}
+              </Stack>
             </Box>
             <Box>
               <FormControlLabel

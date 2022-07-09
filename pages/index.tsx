@@ -187,7 +187,7 @@ const Home: NextPage = () => {
           />
           <Button
             color="error"
-            onClick={(e) => {
+            onClick={() => {
               setIp([0, 0, 0, 0]);
               setCidr(0);
             }}
