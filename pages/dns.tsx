@@ -14,6 +14,7 @@ import NextLink from "next/link";
 import type { SyntheticEvent } from "react";
 import { useCallback, useMemo, useState } from "react";
 import ReactFlow, { Background, Controls, MiniMap } from "react-flow-renderer";
+import Header from "../components/Header";
 import { getDNSQuery } from "../queries";
 
 const typeMap: { [key: number]: string } = {
@@ -204,11 +205,7 @@ function DNS() {
         <meta name="description" content="Interactive DNS Demo" />
       </Head>
       <Container maxWidth="xl">
-        <Box sx={{ m: 1 }}>
-          <NextLink href="/" passHref>
-            <Link>IP Things here</Link>
-          </NextLink>
-        </Box>
+        <Header />
         <Box>
           <form action="" onSubmit={onSubmit} onReset={onReset}>
             <Box>

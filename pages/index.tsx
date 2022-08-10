@@ -5,7 +5,6 @@ import Checkbox from "@mui/material/Checkbox";
 import Container from "@mui/material/Container";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Grid from "@mui/material/Grid";
-import Link from "@mui/material/Link";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -17,8 +16,8 @@ import { dehydrate, QueryClient } from "@tanstack/react-query";
 import _ from "lodash";
 import type { NextPage } from "next";
 import Head from "next/head";
-import NextLink from "next/link";
 import { useCallback, useMemo, useState } from "react";
+import Header from "../components/Header";
 
 const PRIVATE_IPS = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"];
 
@@ -170,11 +169,7 @@ const Home: NextPage = () => {
         <meta name="description" content="Interactive IP Address Demo" />
       </Head>
       <Container maxWidth="xl">
-        <Box sx={{ m: 1 }}>
-          <NextLink href="/dns" passHref>
-            <Link>DNS Things here</Link>
-          </NextLink>
-        </Box>
+        <Header />
         <Box>
           <FormControlLabel
             control={
