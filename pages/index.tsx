@@ -13,12 +13,12 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
+import { dehydrate, QueryClient } from "@tanstack/react-query";
 import _ from "lodash";
 import type { NextPage } from "next";
 import Head from "next/head";
 import NextLink from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { dehydrate, QueryClient } from "react-query";
 
 const PRIVATE_IPS = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"];
 
