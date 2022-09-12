@@ -1,8 +1,8 @@
 import Box from "@mui/material/Box";
+import MuiLink from "@mui/material/Link";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Link from "next/link";
-import MuiLink from "@mui/material/Link";
 import { useRouter } from "next/router";
 
 const TabLink = ({ href, ...props }: { href: string }) => {

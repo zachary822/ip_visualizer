@@ -95,16 +95,34 @@ function NetworkButton({
 }
 
 function IpSegment({
+  idx,
+  cidr,
   value,
   onChange,
 }: {
+  idx: number;
+  cidr: number;
   value: number;
   onChange: (e: any) => void;
 }) {
+  const [min, max] = useMemo(() => {
+    const offset = (idx + 1) * 8 - cidr;
+    let min = 0;
+    let max = 255;
+    if (offset <= 0) {
+      min = max = value;
+    } else if (offset <= 8) {
+      const mask = 2 ** offset - 1;
+      min = value & (~mask >>> 0);
+      max = value | mask;
+    }
+    return [min, max];
+  }, [idx, cidr]);
+
   return (
     <TextField
       type="number"
-      inputProps={{ min: 0, max: 255, style: { textAlign: "center" } }}
+      inputProps={{ min, max, style: { textAlign: "center" } }}
       InputProps={{ disableUnderline: true }}
       sx={{ flexGrow: 1 }}
       variant="standard"
@@ -199,10 +217,33 @@ const Home: NextPage = () => {
                 alignItems: "baseline",
               }}
             >
-              <IpSegment value={ip[0]} onChange={ipSegmentHandler(0)} />.
-              <IpSegment value={ip[1]} onChange={ipSegmentHandler(1)} />.
-              <IpSegment value={ip[2]} onChange={ipSegmentHandler(2)} />.
-              <IpSegment value={ip[3]} onChange={ipSegmentHandler(3)} />
+              <IpSegment
+                idx={0}
+                cidr={cidr}
+                value={ip[0]}
+                onChange={ipSegmentHandler(0)}
+              />
+              .
+              <IpSegment
+                idx={1}
+                cidr={cidr}
+                value={ip[1]}
+                onChange={ipSegmentHandler(1)}
+              />
+              .
+              <IpSegment
+                idx={2}
+                cidr={cidr}
+                value={ip[2]}
+                onChange={ipSegmentHandler(2)}
+              />
+              .
+              <IpSegment
+                idx={3}
+                cidr={cidr}
+                value={ip[3]}
+                onChange={ipSegmentHandler(3)}
+              />
             </Box>
           </Grid>
           <Grid item xs={2}>
@@ -288,26 +329,24 @@ const Home: NextPage = () => {
             </TableContainer>
           </Grid>
           {enableCidr && (
-            <>
-              <Grid item xs={12}>
-                <Box>Loopback Addresses</Box>
-                <Box>
-                  <NetworkButton net={"127.0.0.0/8"} setNetwork={setNetwork} />
-                </Box>
-                <Box>Private Addresses</Box>
-                <Box>
-                  <ButtonGroup orientation="vertical" variant="text">
-                    {PRIVATE_IPS.map((p) => (
-                      <NetworkButton key={p} net={p} setNetwork={setNetwork} />
-                    ))}
-                  </ButtonGroup>
-                </Box>
-                <Box>Multi-cast Addresses</Box>
-                <Box>
-                  <NetworkButton net={"224.0.0.0/4"} setNetwork={setNetwork} />
-                </Box>
-              </Grid>
-            </>
+            <Grid item xs={12}>
+              <Box>Loopback Addresses</Box>
+              <Box>
+                <NetworkButton net={"127.0.0.0/8"} setNetwork={setNetwork} />
+              </Box>
+              <Box>Private Addresses</Box>
+              <Box>
+                <ButtonGroup orientation="vertical" variant="text">
+                  {PRIVATE_IPS.map((p) => (
+                    <NetworkButton key={p} net={p} setNetwork={setNetwork} />
+                  ))}
+                </ButtonGroup>
+              </Box>
+              <Box>Multi-cast Addresses</Box>
+              <Box>
+                <NetworkButton net={"224.0.0.0/4"} setNetwork={setNetwork} />
+              </Box>
+            </Grid>
           )}
         </Grid>
       </Container>
