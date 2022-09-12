@@ -94,30 +94,43 @@ function NetworkButton({
   );
 }
 
+const cidrMinMax = (
+  value: number,
+  idx: number,
+  cidr: number,
+  enableCidr: boolean
+) => {
+  if (!enableCidr) {
+    return [0, 255];
+  }
+
+  const offset = (idx + 1) * 8 - cidr;
+  let min = 0;
+  let max = 255;
+  if (offset <= 0) {
+    min = max = value;
+  } else if (offset <= 8) {
+    const mask = 2 ** offset - 1;
+    min = value & (~mask >>> 0);
+    max = value | mask;
+  }
+  return [min, max];
+};
+
 function IpSegment({
   idx,
   cidr,
   value,
   onChange,
+  enableCidr,
 }: {
   idx: number;
   cidr: number;
   value: number;
   onChange: (e: any) => void;
+  enableCidr: boolean;
 }) {
-  const [min, max] = useMemo(() => {
-    const offset = (idx + 1) * 8 - cidr;
-    let min = 0;
-    let max = 255;
-    if (offset <= 0) {
-      min = max = value;
-    } else if (offset <= 8) {
-      const mask = 2 ** offset - 1;
-      min = value & (~mask >>> 0);
-      max = value | mask;
-    }
-    return [min, max];
-  }, [idx, cidr]);
+  const [min, max] = cidrMinMax(value, idx, cidr, enableCidr);
 
   return (
     <TextField
@@ -222,6 +235,7 @@ const Home: NextPage = () => {
                 cidr={cidr}
                 value={ip[0]}
                 onChange={ipSegmentHandler(0)}
+                enableCidr={enableCidr}
               />
               .
               <IpSegment
@@ -229,6 +243,7 @@ const Home: NextPage = () => {
                 cidr={cidr}
                 value={ip[1]}
                 onChange={ipSegmentHandler(1)}
+                enableCidr={enableCidr}
               />
               .
               <IpSegment
@@ -236,6 +251,7 @@ const Home: NextPage = () => {
                 cidr={cidr}
                 value={ip[2]}
                 onChange={ipSegmentHandler(2)}
+                enableCidr={enableCidr}
               />
               .
               <IpSegment
@@ -243,6 +259,7 @@ const Home: NextPage = () => {
                 cidr={cidr}
                 value={ip[3]}
                 onChange={ipSegmentHandler(3)}
+                enableCidr={enableCidr}
               />
             </Box>
           </Grid>
