@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import "../styles/globals.css";
 
-function MyApp({ Component, pageProps }: AppProps) {
+function MyApp({ Component, pageProps }: AppProps<any>) {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
